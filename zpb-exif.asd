@@ -1,8 +1,8 @@
-;;; 
+;;;
 ;;; zpb-exif.asd
-;;; 
+;;;
 ;;; Created: 2005-12-08 by Zach Beane <xach@xach.com>
-;;; 
+;;;
 ;;; Copyright (c) 2005 Zachary Beane, All Rights Reserved
 ;;;
 ;;; Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,11 @@
 ;;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 ;;; NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-;;; 
-;;; $Id: zpb-exif.asd,v 1.2 2009/09/08 17:16:23 xach Exp $
+;;;
 
-(defpackage :zpb-exif-system
-  (:use :asdf :cl))
 
-(in-package :zpb-exif-system)
-
-(defsystem :zpb-exif
+(asdf:defsystem :zpb-exif
   :version "1.2.0"
   :author "Zachary Beane <xach@xach.com>"
+  :description "Read EXIF data from image files"
   :components ((:file "exif")))
