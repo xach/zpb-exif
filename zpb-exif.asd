@@ -32,7 +32,7 @@
 
 
 (asdf:defsystem :zpb-exif
-  :version "1.2.0"
+           :version "1.2.1"
   :author "Zachary Beane <xach@xach.com>"
   :description "Read EXIF data from image files"
   :components ((:file "exif")))
