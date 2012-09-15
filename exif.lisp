@@ -216,7 +216,9 @@ a vector."
 
 (defun get-ascii (type count pos exif)
   (declare (ignore type))
-  (get-string pos count exif))
+  (if (plusp count)
+      (get-string pos count exif)
+      ""))
 
 (defun get-short (type count pos exif)
   (declare (ignore type))
