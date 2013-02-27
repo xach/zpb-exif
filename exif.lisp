@@ -263,11 +263,17 @@ a vector."
 (defun get-srational (type count pos exif)
   (declare (ignore type))
   (if (= count 1)
-      (/ (long->slong (get-32 pos exif))
-         (long->slong (get-32 (+ pos 4) exif)))
+      (let ((numerator (long->slong (get-32 pos exif)))
+            (denominator (get-32 (+ pos 4) exif)))
+        (if (zerop denominator)
+            0
+            (/ numerator denominator)))
       (do-gets (i pos 8 count)
-        (/ (long->slong (get-32 i exif))
-           (long->slong (get-32 (+ i 4) exif))))))
+        (let ((numerator (long->slong (get-32 i exif)))
+            (denominator (get-32 (+ i 4) exif)))
+        (if (zerop denominator)
+            0
+            (/ numerator denominator))))))
 
 (defun get-unknown-type (type &rest args)
   (declare (ignore args))
