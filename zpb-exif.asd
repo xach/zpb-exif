@@ -32,7 +32,7 @@
 
 
 (asdf:defsystem :zpb-exif
-  :version "1.2.2"
+  :version "1.2.3"
   :license "BSD"
   :author "Zachary Beane <xach@xach.com>"
   :description "Read EXIF data from image files"
