@@ -48,6 +48,7 @@
            :exif-value
            :parsed-exif-value
            :parse-exif-data
+           :parse-exif-octets
            :exif-data
            :thumbnail-image
            :ifd-alist
@@ -499,6 +500,28 @@ no APP1 segment can be found."
           (t
            (error 'invalid-exif-stream)))))
 
+(defun parse-exif-octets (data &key file offset)
+  "Parse exif data from (unsigned-byte 8) simple-array DATA, storing
+FILE and OFFSET in resulting Exif object if provided. Data should
+contain the exif data starting after the \"Exif#\NUL#\NUL\" header. If
+the vector does not contain Exif data, raise INVALID-EXIF-STREAM."
+  ;; ASCII #\I or #\M
+  (let ((endianness (if (= (aref data 0) (aref data 1) #x49)
+                        :lsb
+                        :msb)))
+    (destructuring-bind (get-32 get-16)
+        (if (eql endianness :lsb)
+            *reader-functions/lsb*
+            *reader-functions/msb*)
+      (initialize-exif-ifds
+       (make-instance 'exif
+                      :file file
+                      :data data
+                      :offset offset
+                      :endianness endianness
+                      :get-32-function get-32
+                      :get-16-function get-16)))))
+
 (defun make-exif-from-stream (stream)
   "Extract an Exif object from the open (unsigned-byte 8) STREAM. The
 stream must be positioned at the beginning of JPEG data. If the stream
@@ -514,22 +537,8 @@ not contain Exif data, raise INVALID-EXIF-STREAM."
     (let ((data (make-array size :element-type '(unsigned-byte 8)))
           (offset (file-position stream)))
       (read-sequence data stream)
-      ;; ASCII #\I or #\M
-      (let ((endianness (if (= (aref data 0) (aref data 1) #x49)
-                            :lsb
-                            :msb)))
-        (destructuring-bind (get-32 get-16)
-            (if (eql endianness :lsb)
-                *reader-functions/lsb*
-                *reader-functions/msb*)
-          (initialize-exif-ifds 
-           (make-instance 'exif
-                          :file (ignore-errors (truename stream))
-                          :data data
-                          :offset offset
-                          :endianness endianness
-                          :get-32-function get-32
-                          :get-16-function get-16)))))))
+      (parse-exif-octets data :file (ignore-errors (truename stream))
+                              :offset offset))))
 
 (defun make-exif-from-file (file)
   (with-open-file (stream file
