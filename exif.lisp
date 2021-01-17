@@ -317,7 +317,7 @@ a vector."
 
 (defmethod print-object ((ifd ifd) stream)
   (print-unreadable-object (ifd stream :type t :identity t)
-    (format stream "(~D entries)" (length (entries ifd)))))
+    (format stream "(~D entries)" (hash-table-count (entries ifd)))))
 
 (defclass ifd-entry ()
   ((exif
@@ -375,7 +375,7 @@ offset area?"
 
 (defun read-ifd (pos tagset exif)
   (let* ((entry-count (get-16 pos exif))
-         (entries (make-array entry-count))
+         (entries (make-hash-table))
          (next-ifd-offset (get-32 (+ pos 2 (* 12 entry-count)) exif))
          (ifd (make-instance 'ifd
                              :tagset tagset
@@ -383,7 +383,8 @@ offset area?"
                              :next-ifd-offset next-ifd-offset)))
     (loop for i below entry-count
           for j from 2 by 12
-          do (setf (aref entries i) (read-ifd-entry (+ pos j) ifd exif)))
+          for entry = (read-ifd-entry (+ pos j) ifd exif)
+          do (setf (gethash (tag entry) entries) entry))
     ifd))
 
 (defun initialize-ifd-entry (ifd-entry)
@@ -415,7 +416,7 @@ offset area?"
 
 (defun %ifd-entry (tag ifd)
   (when ifd
-    (bisect-find tag (entries ifd) :key #'tag)))
+    (gethash tag (entries ifd))))
 
 
 ;;;
@@ -995,7 +996,7 @@ to a universal time."
   (when ifd
     (let ((tag (tag-designator tag (tagset ifd))))
       (when tag
-        (bisect-find tag (entries ifd) :key #'tag)))))
+        (gethash tag (entries ifd))))))
 
 (defun find-ifd-entry (tag exif)
   (or (ifd-entry tag (image-ifd exif))
@@ -1078,7 +1079,7 @@ NIL."
 (defun ifd-alist (ifd &key parsedp)
   "Return all the values in IFD as an alist."
   (when ifd
-    (loop for entry across (entries ifd)
+    (loop for entry being the hash-value of (entries ifd)
           for name = (or (tag-name (tag entry) (tagset ifd))
                          (format nil "Unknown Tag #x~4,'0X" (tag entry)))
           collect (cons name
