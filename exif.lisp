@@ -493,8 +493,8 @@ no APP1 segment can be found."
            (return))
           ((and (= first-byte #xFF) (<= #xE0 next-byte #xEF))
            (let ((appn-size (read-jpeg-uint16 stream)))
-             (file-position stream (+ (file-position stream)
-                                      (- appn-size 2)))))
+             (dotimes (_ (- appn-size 2))
+               (read-byte stream nil))))
           ((= next-byte #xFF)
            ;; padding -- do nothing
            )
